@@ -25,7 +25,7 @@ fn main() {
 
 /// Converts a Markdown file to PDF using typst-cli.
 fn convert_to_pdf(md_file: &Path, output: &str) {
-    let template_string: String = "#import \"@preview/cmarker:0.1.6\"\n#cmarker.render(\nread(\"REPLACE_ME\"),\nscope: (image: (path, alt: none) => image(path, alt: alt))\n)"
+    let template_string: String = "#import \"@preview/cmarker:0.1.6\"\n#import \"@preview/mitex:0.2.6\": mitex\n#cmarker.render(\nread(\"REPLACE_ME\"),\nscope: (image: (path, alt: none) => image(path, alt: alt)),\nmath: mitex\n)"
         .replace("REPLACE_ME", md_file.to_str().unwrap());
 
     let output_path = Path::new(output);

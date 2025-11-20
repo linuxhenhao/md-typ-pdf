@@ -6,6 +6,7 @@ A simple command-line tool written in Rust that converts Markdown (.md) files in
 - Converts Markdown files (.md) into PDFs (.pdf)
 - Uses typst for lightweight conversion
 - Automatically determines the output filename if not specified
+- Math rendering with [mitex](https://github.com/mitex-rs/mitex)
 
 ## Requirements
 Before running, make sure you have [Typst CLI](https://github.com/typst/typst) installed and available in your `$PATH`.
