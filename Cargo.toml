@@ -13,3 +13,4 @@ keywords = ["markdown", "pdf", "typst", "converter"]
 [dependencies]
 clap = { version = "4.5.51", features = ["derive"] }
 duct = "1.1.0"
+tempfile = "3.10.1"

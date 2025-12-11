@@ -1,10 +1,8 @@
 use std::fs;
-use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use clap::Parser;
 use duct::cmd;
-
 #[derive(Debug, Clone, clap::Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
@@ -27,20 +25,32 @@ fn main() {
 
 /// Converts a Markdown file to PDF using typst-cli.
 fn convert_to_pdf(md_file: &Path, output: &str) {
-    let template_string: String = "#import \"@preview/cmarker:0.1.7\"\n#import \"@preview/mitex:0.2.6\": mitex\n#cmarker.render(\nread(\"REPLACE_ME\"),\nscope: (image: (path, alt: none) => image(path, alt: alt)),\nmath: mitex\n)"
-        .replace("REPLACE_ME", md_file.to_str().unwrap());
+    let temp_dir = tempfile::tempdir().unwrap();
+    let temp_dir_path = temp_dir.path();
 
-    let temp_path = Path::new("temp.typ");
-    let mut temp_file = File::create(temp_path).unwrap();
-    temp_file.write_all(template_string.as_bytes()).unwrap();
+    // Copy the markdown file to the temporary directory
+    let md_file_name = md_file.file_name().unwrap();
+    let temp_md_path = temp_dir_path.join(md_file_name);
+    fs::copy(md_file, &temp_md_path).unwrap();
 
-    let output_path = Path::new(output);
+    let template_string: String = format!(
+        "#import \"@preview/cmarker:0.1.8\"\n#import \"@preview/mitex:0.2.6\": mitex\n\n#set text(font: (\"Arial\", \"Helvetica\", \"sans-serif\"), size: 11pt, weight: \"regular\")\n#set par(justify: true, leading: 0.65em)\n#show heading: set block(above: 1.5em, below: 1em)\n#show link: set text(fill: blue)\n#show raw.where(block: true): set block(fill: luma(240), inset: 10pt, radius: 4pt, width: 100%)\n#show raw: set text(font: (\"Consolas\", \"Monaco\", \"Courier New\", \"monospace\"))\n\n#cmarker.render(\nread(\"{}\"),\nscope: (image: (path, alt: none) => image(path, alt: alt)),\nmath: mitex\n)",
+        md_file_name.to_str().unwrap()
+    );
 
-    cmd!("typst", "compile", "--root", ".", temp_path, output_path)
+    let temp_typ_file_name = "temp.typ";
+    let temp_typ_path = temp_dir_path.join(temp_typ_file_name);
+    let mut temp_typ_file = fs::File::create(&temp_typ_path).unwrap();
+    temp_typ_file.write_all(template_string.as_bytes()).unwrap();
+
+    let output_file_name = Path::new(output).file_name().unwrap();
+    let temp_output_path = temp_dir_path.join(output_file_name);
+
+    cmd!("typst", "compile", "--root", temp_dir_path, &temp_typ_path, &temp_output_path)
         .run()
         .unwrap();
 
-    fs::remove_file(temp_path).unwrap();
+    fs::rename(&temp_output_path, output).unwrap();
 }
 
 #[cfg(test)]
@@ -50,15 +60,13 @@ mod tests {
 
     #[test]
     fn test_convert_to_pdf() {
-        let md_path = "test.md";
-        fs::write(md_path, "# Test Markdown\nThis is a simple test.").unwrap();
+        let temp_dir = tempfile::tempdir().unwrap();
+        let md_path = temp_dir.path().join("test.md");
+        fs::write(&md_path, "# Test Markdown\nThis is a simple test.").unwrap();
 
-        let output = "test.pdf";
-        convert_to_pdf(Path::new(md_path), output);
+        let output_path = temp_dir.path().join("test.pdf");
+        convert_to_pdf(&md_path, output_path.to_str().unwrap());
 
-        assert!(Path::new(output).exists());
-
-        fs::remove_file(md_path).unwrap();
-        fs::remove_file(output).unwrap();
+        assert!(output_path.exists());
     }
 }
