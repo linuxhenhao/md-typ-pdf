@@ -34,7 +34,7 @@ fn convert_to_pdf(md_file: &Path, output: &str) {
     fs::copy(md_file, &temp_md_path).unwrap();
 
     let template_string: String = format!(
-        "#import \"@preview/cmarker:0.1.8\"\n#import \"@preview/mitex:0.2.6\": mitex\n\n#set text(font: (\"Arial\", \"Helvetica\", \"sans-serif\"), size: 11pt, weight: \"regular\")\n#set par(justify: true, leading: 0.65em)\n#show heading: set block(above: 1.5em, below: 1em)\n#show link: set text(fill: blue)\n#show raw.where(block: true): set block(fill: luma(240), inset: 10pt, radius: 4pt, width: 100%)\n#show raw: set text(font: (\"Consolas\", \"Monaco\", \"Courier New\", \"monospace\"))\n\n#cmarker.render(\nread(\"{}\"),\nscope: (image: (path, alt: none) => image(path, alt: alt)),\nmath: mitex\n)",
+        "#import \"@preview/cmarker:0.1.8\"\n#import \"@preview/mitex:0.2.6\": mitex\n\n// 正文使用宋体，视觉更清秀，适合简历\n#set text(font: (\"Source Han Serif SC\", \"Noto Serif CJK SC\", \"Songti SC\", \"SimSun\", \"Times New Roman\", \"serif\"), size: 11pt, weight: \"regular\", fill: rgb(\"#333333\"))\n#set par(justify: true, leading: 0.65em)\n\n// 标题使用黑体，更加醒目\n#show heading: set block(above: 1.5em, below: 1em)\n#show heading: set text(font: (\"PingFang SC\", \"Microsoft YaHei\", \"Source Han Sans SC\", \"Arial\", \"sans-serif\"), weight: \"bold\", fill: black)\n\n#show link: set text(fill: blue)\n#show raw.where(block: true): set block(fill: luma(240), inset: 10pt, radius: 4pt, width: 100%)\n#show raw: set text(font: (\"Consolas\", \"Monaco\", \"Courier New\", \"monospace\"))\n\n#cmarker.render(\nread(\"{}\"),\nscope: (image: (path, alt: none) => image(path, alt: alt)),\nmath: mitex\n)",
         md_file_name.to_str().unwrap()
     );
 
